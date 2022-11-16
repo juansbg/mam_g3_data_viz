@@ -1,0 +1,160 @@
+# Visualizations Final Project
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(vroom)
+library(skimr)
+library(janitor)
+library(forcats)
+library(ggtext)
+library(sf)
+```
+
+## Data import
+
+```{r}
+set.seed(1234)
+data_source <- "data/T_DB1B_MARKET.csv"
+
+flights <- vroom::vroom(data_source) %>% janitor::clean_names() %>% sample_n(20000)
+
+# As part of our exploratory analysis we check that there are no NAs. 
+skimr::skim(flights) 
+```
+
+```{r}
+glimpse(flights)
+```
+
+## Data Processing
+
+```{r}
+
+```
+
+## Viz 1
+
+```{r}
+
+state_regions <- data.frame(
+  abb = datasets::state.abb,
+  region = datasets::state.region
+)
+
+# We removed outlier flights that fall into a line of prices:
+flights %>% filter(market_fare>20) %>% 
+  left_join(state_regions, by=c("origin_state_abr" = "abb")) %>% filter(!is.na(region)) %>% 
+  ggplot(aes(x=market_distance, y=market_fare, color=region)) +
+  geom_point(alpha=.1) + 
+  geom_smooth() +
+  facet_wrap(~region) +
+  scale_y_log10() + 
+  scale_x_log10()
+
+```
+
+# TO DO:
+
+-   Make map
+
+-   Get subdivisions from datasets::state.division and datasets::state.region
+
+## Viz 2
+
+```{r}
+```
+
+```{r}
+# Heatmap: Destination vs Origin
+
+airport_n = 15
+# top_airports 
+top_airports <- left_join(
+  flights %>% 
+    group_by(dest) %>% 
+    summarise(dest_number = n()),
+  flights %>% 
+    group_by(origin) %>% 
+    summarise(origin_number = n()),
+  by=c("dest"="origin")
+) %>% 
+  mutate(city=dest, 
+         total_flights=dest_number+origin_number) %>% 
+  select(city, total_flights) %>% 
+  slice_max(order_by = total_flights, n = airport_n) %>% 
+  select(city)
+
+top_airports <- as.list(top_airports$city)
+
+flights %>% 
+  filter(dest %in% top_airports & origin %in% top_airports) %>% 
+  group_by(dest, origin) %>% 
+  summarise(total_flights = n()) %>% 
+  pivot_wider(names_from=origin, values_from=total_flights, values_fill = 0) %>% 
+  pivot_longer(2:airport_n+1,names_to = "origin", values_to = "total_flights") %>% 
+  ggplot(aes(x=dest, y=origin, fill=total_flights), color= NA) +
+    geom_tile()
+  
+```
+
+## Viz 3
+
+```{r}
+
+state_regions <- data.frame(
+  abb = datasets::state.abb,
+  region = datasets::state.region
+)
+
+# We removed outlier flights that fall into a line of prices:
+flights %>% filter(market_fare>20) %>% 
+  left_join(state_regions, by=c("origin_state_abr" = "abb")) %>% 
+  mutate(region = ifelse(is.na(region), "Overseas Territories", as.character(region)) ) %>% 
+  #select(market_fare, market_distance) %>% 
+  mutate(dollars_per_mile=market_fare/market_distance) %>% 
+  ggplot(aes(x=dollars_per_mile, color=region)) +
+    geom_density(size=3) +
+    facet_wrap(~region) +
+    scale_x_log10() +
+    theme_minimal()
+
+```
+
+# REGRESSION
+
+```{r}
+
+state_regions <- data.frame(
+  abb = datasets::state.abb,
+  region = datasets::state.region,
+  division = datasets::state.division
+)
+
+dataset <- flights %>% 
+  filter(market_fare>20) %>% 
+  left_join(state_regions, by=c("origin_state_abr" = "abb")) %>% 
+  mutate(region = ifelse(is.na(region), "Overseas Territories", as.character(region)),
+         division = ifelse(is.na(division), "Overseas Territories", as.character(division)),
+         region = as.factor(region),
+         division = as.factor(division),
+         #quarter = as.factor(quarter),
+         ticket_carrier = as.factor(ticket_carrier)
+         ) %>% 
+  select(market_fare, market_coupons, year, quarter,
+         ticket_carrier, op_carrier_change, tk_carrier_change, 
+         market_distance, region, division
+         )
+
+model1 <- lm(market_fare ~ ., data=dataset)
+
+summary(model1)
+```
+
+```{r}
+
+unique(flights$quarter)
+
+unique(flights$year)
+```
