@@ -18,8 +18,8 @@ library(sf)
 ```{r}
 set.seed(1234)
 data_source1 <- "data/T_DB1B_MARKET_2022_1.csv"
-data_source2 <- "data/T_DB1B_MARKET_2021_1.csv"
-data_source3 <- "data/T_DB1B_MARKET_2021_2.csv"
+# data_source2 <- "data/T_DB1B_MARKET_2021_1.csv"
+# data_source3 <- "data/T_DB1B_MARKET_2021_2.csv"
 
 flights <- #rbind(
   vroom::vroom(data_source1) %>% janitor::clean_names()
@@ -40,7 +40,22 @@ glimpse(flights)
 ## Data Processing
 
 ```{r}
+# COLOR PALETTE
+# #00c2e6,#46cde6,#6cd7e5,#8ee0e3,#b0e8e1,#d4efdc,#fff3d5,#ffe3c8,#ffd3bc,#ffc2b1,#ffb0a7,#ff9e9d,#ff8b94
+# DARK VERSION
+# #006f90,#117f98,#2f8e9d,#569b9c,#81a69a,#a6b09a,#c6bb9e,#c6a58d,#c48e7d,#bf786f,#b76361,#ad4e54,#a23847
+# GREEN
+# #ffffe8,#effae3,#dff4db,#d0efd1,#c2e9c5,#b5e3b9,#a8ddab,#9bd89c,#8ed28b,#82cc7b,#75c669,#67c055,#59ba40
+# DARK GREEN
+#c6c6b0,#b7bea9,#a7b6a0,#98ae96,#89a68b,#7b9e80,#6d9673,#5f8e65,#508656,#427e46,#337634,#206e20,#006700
 
+master_palette <- c('#00c2e6', '#46cde6', '#6cd7e5', '#8ee0e3', '#b0e8e1', '#d4efdc', '#fff3d5', '#ffe3c8', '#ffd3bc', '#ffc2b1', '#ffb0a7', '#ff9e9d', '#ff8b94')
+
+master_palette_dark <- c('#006f90', '#117f98', '#2f8e9d', '#569b9c', '#81a69a', '#a6b09a', '#c6bb9e', '#c6a58d', '#c48e7d', '#bf786f', '#b76361', '#ad4e54', '#a23847')
+
+master_palette_green <- c('#ffffe8', '#effae3', '#dff4db', '#d0efd1', '#c2e9c5', '#b5e3b9', '#a8ddab', '#9bd89c', '#8ed28b', '#82cc7b', '#75c669', '#67c055', '#59ba40')
+
+master_palette_green_dark <- c('#c6c6b0', '#b7bea9', '#a7b6a0', '#98ae96', '#89a68b', '#7b9e80', '#6d9673', '#5f8e65', '#508656', '#427e46', '#337634', '#206e20', '#006700')
 ```
 
 ## Viz 1
@@ -64,16 +79,7 @@ flights %>% filter(market_fare>20) %>%
 
 ```
 
-# TO DO:
-
--   Make map
-
--   Get subdivisions from datasets::state.division and datasets::state.region
-
 ## Viz 2
-
-```{r}
-```
 
 ```{r}
 # Heatmap: Destination vs Origin
@@ -109,25 +115,27 @@ flights %>%
     theme_minimal() +
     scale_fill_gradientn(
       na.value = "#5dade2",
-      colours = #c("#EBF5FB", "#3498DB", "#F4D03F", "#F39C12", "#E74C3C")
+      colours = master_palette, #c("#EBF5FB", "#3498DB", "#F4D03F", "#F39C12", "#E74C3C")
                 #c('#5dade2', '#74b7df', '#8ac1dd', '#a1cbda', '#b8d5d7', '#cfdfd4', '#e5e9d2', '#f9e491', '#f5d554', '#f4c132', '#f3ab1f', '#f19118', '#ec6e2a', '#e74c3c'),
-        c('#1fc399', '#65cda2', '#90d8ad', '#b6e2b8', '#daebc5',
-                '#fff3d5', '#ffc5b0', '#ffb7aa', '#ffa9a3', '#ff9a9c', '#ff8b94'),
+        #c('#1fc399', '#65cda2', '#90d8ad', '#b6e2b8', '#daebc5',
+        #        '#fff3d5', '#ffc5b0', '#ffb7aa', '#ffa9a3', '#ff9a9c', '#ff8b94'),
 
       #trans = "log"
       ) +
     labs(
       x="Flights to",
       y="Flights from",
-      fill="Flights",
-      title = "<b>The airports of Miami (MIA) and Dallas (DFW) are<br><span style='color:#ff8b94'>most commonly used</span> to connect to other major hubs</b>"
+      fill="Number of Flights",
+      title = "<b><span style='font-size:20px'>The airports of Miami (MIA) and Dallas (DFW) are<br><span style='color:black'>most commonly used</span> to connect to other major hubs</span></b>",
+      caption = "<b>Source:</b> Annual Airline Destination and Origin Survey (D1B1), Bureau of Transportation Statistics"
     ) +
     theme(#legend.position = "none",
           axis.text.x=element_text(angle=45,
                                    #hjust = 0.2,
                                    #vjust = 0.2
                                    ),
-          plot.title = element_markdown(size=14)
+          plot.title = element_markdown(size=14),
+          plot.caption = element_markdown()
           ) -> plot1
   plot1
 ```
@@ -166,20 +174,21 @@ dollars_per_mile_cost %>%
     geom_boxplot() +
     #facet_wrap(~division) +
     scale_x_log10(labels = scales::dollar_format()) +
+    #scale_x_continuous(labels = scales::dollar_format(), limits = c(0,10)) +
     theme_minimal() +
-    scale_fill_manual(values=c('#a8e6cf', '#bde9cb', '#d0ebc9', '#e1eeca', '#f0f1ce',
-                               '#fff3d5', '#ffc5b0', '#ffb7aa', '#ffa9a3', '#ff9a9c', '#ff8b94')) +
-    scale_color_manual(values=c('#72ae99', '#87b195', '#99b493', '#a9b694', '#b8b998',
-                                '#c6bb9e', '#d8a38d', '#d19182', '#cc7f77', '#c66c6d', '#c35661')) +
+    scale_fill_manual(values=master_palette) +
+    scale_color_manual(values=master_palette_dark) +
     #coord_flip() +
     labs(
       y="",
       x="Cost per mile ($)",
-      title = "<b><span style='font-size:25px; color:#72ae99'>$0.25</span> is the average price per mile in the U.S.</b><br>Prices vary widely and <span style='color:#c35661'>can reach up to $19 per mile.</span>"
+      title = "<b><span style='font-size:20px'><span style='font-size:25px; color:black'>$0.25</span> is the average price per mile in the U.S.</span></b><br>Prices vary widely and <span style='color:black'>can reach up to $19 per mile.</span>",
+      caption = "<b>Source:</b> Annual Airline Destination and Origin Survey (D1B1), Bureau of Transportation Statistics"
     ) +
     theme(legend.position = "none",
           panel.grid.major.y = element_blank(),
-          plot.title = element_markdown()
+          plot.title = element_markdown(),
+          plot.caption = element_markdown()
         ) -> plot2
 plot2
 ```
@@ -246,19 +255,17 @@ unique(flights$year)
 
 
 ```{r}
+# devtools::install_github("yutannihilation/ggsflabel")
 library(urbnmapr)
+library(ggsflabel)
 
 states_sf <- get_urbn_map("states", sf = TRUE)
-
-# having loaded the shapefile, let me print the map,
-# where fill = grey70, and colour (the outline of each state) = white
-
-states_sf %>%
-  ggplot(aes()) +
-  geom_sf(fill = "grey70", colour = "#ffffff")
-
-
-datasets::state.center
+airports <- vroom::vroom("data/us-airports.csv") %>% 
+              janitor::clean_names() %>% 
+              filter(type %in% c("large_airport", "medium_airport")) %>% 
+              filter(!local_region %in% c("HI","AK")) %>% 
+              mutate(type = ifelse(type == "large_airport", 2, 1)) %>% 
+              select(iata_code, longitude_deg, latitude_deg, type)
 
 state_regions_coords <- data.frame(
   abb = datasets::state.abb,
@@ -278,25 +285,39 @@ dataset_plot3 <- flights %>%
   ungroup() %>%
   left_join(state_regions_coords, by=c("state" = "abb"))
 
+flights %>% 
+  group_by(dest) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  left_join(airports, by=c("dest" = "iata_code")) %>% 
+  filter(!is.na(latitude_deg)) %>% 
+  st_as_sf(coords = c(3:4), crs = st_crs(4326)) %>% st_transform(2163) -> airport_points  
+
+
 dataset_plot3 %>%
-  left_join(states_sf, by=c("state" = "state_abbv")) %>%
+  left_join(states_sf, by=c("state" = "state_abbv")) %>% 
   filter(!is.na(state_name)) %>%
-  ggplot(aes(fill=mean_price)) +
-  geom_sf(colour = NA, aes(geometry=geometry)) +
-  facet_wrap(~location_type) +
+  ggplot() +
+  geom_sf(colour = NA, aes(geometry=geometry,fill=mean_price)) +
+  geom_sf(data=airport_points, color="black", fill=NA, shape=21, mapping = aes(size=type)) +
+  geom_sf_text_repel(data = airport_points %>% filter(type==2), mapping = aes(label = dest), size=4) +
+  #facet_wrap(~location_type) +
+  scale_size_continuous(guide = "none", range = c(1,2)) +
   scale_fill_stepsn(
     #colours = c('#3498db', '#7caed9', '#acc4d6',
     #           '#d5dbd3', '#fcf3cf', '#fdcca8',
     #           '#faa482', '#f27b5e', '#e74c3c'),
-    colours = c('#1fc399', '#65cda2', '#90d8ad', '#b6e2b8', '#daebc5',
-                '#fff3d5', '#ffc5b0', '#ffb7aa', '#ffa9a3', '#ff9a9c', '#ff8b94'),
+    colours = master_palette,
     #limits = c(221,1100)
     n.breaks = 13,
     labels = scales::dollar_format()
     ) +
   labs(
     fill="",
-    title = "<b><span style='color:#e74c3c'>Alaska</span>, <span style='color:#f27b5e'>Hawaii</span> and <span style='color:#faa482'>Wyoming</span> rank highest on average prices, both for inbound and outbound flights</b><br>The <span style='color:#1fc399'>east coast</span> shows consistently lower prices on average."
+    title = "<b><span style='font-size:20px'><span style='color:black'>Alaska</span>, <span style='color:black'>Hawaii</span> and <span style='color:black'>Wyoming</span> rank highest on average prices, for both inbound and outbound flights</b></span><br>The <span style='color:black'>east coast</span> shows consistently lower prices on average.",
+    caption = "<b>Source:</b> Annual Airline Destination and Origin Survey (D1B1), Bureau of Transportation Statistics",
+    x = "",
+    y = ""
   ) +
   theme_minimal() +
   theme(
@@ -307,10 +328,72 @@ dataset_plot3 %>%
     legend.key.width=unit(3,"cm"),
     legend.key.height=unit(0.3,"cm"),
     strip.text = element_text(size=12),
-    plot.title = element_markdown()
+    plot.title = element_markdown(),
+    plot.caption = element_markdown()
   ) -> plot3
 plot3
 ```
+
+```{r}
+# BUBBLE PLOT
+
+library(packcircles)
+library(ggrepel)
+set.seed(42)
+
+data <- flights %>% 
+  group_by(dest_state_abr) %>% 
+  summarise(air_traffic = n(), 
+            median_price = median(market_fare),
+            revenue = sum(market_fare)/1000000,
+            ) %>% 
+  ungroup() %>% 
+  mutate(revenue_per_flight=1000000*revenue/air_traffic) %>% 
+  filter(!dest_state_abr %in% c('TT'))
+
+top_states <- 148298 + 120837 + 97673
+all_flights <- sum(data$air_traffic)
+
+top_states/all_flights
+
+# Generate the layout
+# packing <- circleProgressiveLayout(data$count, sizetype='area')
+# packing$radius <- 0.80*packing$radius
+# data <- cbind(data, packing)
+# dat.gg <- circleLayoutVertices(packing, npoints=50)
+# dat.gg$mean <- rep(data$mean_price, each=51)
+
+ggplot(data=data, aes(x=air_traffic, y=revenue, label=dest_state_abr, size=median_price, color=revenue_per_flight, fill=revenue_per_flight)) + 
+  #geom_polygon(data = dat.gg, aes(x, y, group = id, fill=mean, colour = mean), alpha = 0.6) +
+  stat_smooth(size=2, color="lightgray", se=FALSE) +
+  geom_point(shape = 21,
+             #position=position_jitterdodge() #position_dodge(width = 2)
+             ) + 
+  geom_text_repel() +
+  scale_fill_gradientn(colors = master_palette_green, trans = "log", labels = scales::dollar_format()) +
+  scale_color_gradientn(colors = master_palette_green_dark, trans = "log", guide = "none") +
+  #geom_text(data = data, aes(x, y, size=radius, label = dest_state_abr, colour = mean_price)) +
+  theme_minimal() + 
+  theme() + 
+  scale_size_continuous(guide = "none") +
+  scale_x_log10(labels = scales::label_number_si()) +
+  scale_y_continuous(labels = scales::unit_format(unit="M", prefix="$ ", sep = "")) +
+  labs(
+    title = "<b><span style='font-size:20px'>Florida, Texas and California account for <span style='font-size:25px; color:black'>34.98%</span> of all air traffic<br>However, other states such as Alaska and Hawaii show higher profit in each flight</b></span><br>Darker states show a larger ratio of profit-per-flight than the average.",
+    y = "Revenue",
+    x = "Flights per quarter",
+    fill = "Profit per ticket",
+    caption = "<b>Source:</b> Annual Airline Destination and Origin Survey (D1B1), Bureau of Transportation Statistics"
+  ) +
+  theme(plot.title = element_markdown(),
+        plot.caption = element_markdown()
+        #legend.position = "none"
+        ) -> plot4
+
+plot4
+```
+
+
 
 
 ```{r}
@@ -342,9 +425,6 @@ random_sample<-rbind(
 ) %>%
   janitor::clean_names()
 
-x <- c("Q1/13","Q2/14")
-as.Date(as.yearqtr(x, format = "Q%q/%y"))
-
 library(zoo)
 
 flight_data_time<-random_sample %>%
@@ -356,8 +436,28 @@ flight_data_time<-random_sample %>%
                   #mutate(year_quarter=as.factor(year_quarter))
 
 ggplot(data=flight_data_time,aes(x=date,y=average_price_per_mile)) +
-  geom_point(size=5, alpha=.5, color="#1fc399") +
-  stat_smooth(lineend="round", se = FALSE, size=2, color="#ffa9a3") +
-  theme_minimal()
-
+  annotate('rect', xmin = as.Date(dmy("03/02/2020")), xmax = as.Date(dmy("07/02/2020")), 
+           ymin = -Inf, ymax = Inf, alpha=.4, fill="#e74c3c") +
+  annotate('rect', xmin = as.Date(dmy("14/12/2020")), xmax = as.Date(dmy("18/12/2020")), 
+           ymin = -Inf, ymax = Inf, alpha=.4, fill="#e74c3c") +
+  annotate('richtext', x = as.Date(dmy("07/02/2020")), y = 0.25, 
+           label = "<b>02/02/2020</b><br>Global Air Travel<br>Is Restricted", 
+           hjust = 0, vjust=1, label.size = NA, label.color = NA) +
+  annotate('richtext', x = as.Date(dmy("20/12/2020")), y = 0.25, 
+           label = "<b>14/12/2020</b><br>The first COVID-19 vaccines<br>begin distribution in<br>the United States.", 
+           hjust = 0, vjust=1, label.size = NA, label.color = NA) +
+  geom_point(size=3, alpha=.8, color="#8ee0e3") +
+  stat_smooth(lineend="round", se = FALSE, size=2, color="#00c2e6") +
+  #scale_y_log10() +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  theme_minimal() +
+  labs(
+    title = "<b><span style='font-size:20px'>By the first quarter of 2022, prices had still not reached pre-pandemic levels</span></b>",
+    x = "",
+    y = "Average price-per-mile",
+    caption = "<b>Source:</b> Annual Airline Destination and Origin Survey (D1B1), Bureau of Transportation Statistics"
+  ) + 
+  theme(plot.title = element_markdown(), plot.caption = element_markdown()) -> plot5
+  
+plot5
 ```
